@@ -54,55 +54,100 @@ public class MainActivity extends Activity {
 			onDestroyEditor.putInt("OnCreateCount", 0);
 			onDestroyEditor.commit();
 			Log.d("TAG", "In Else block");
-			try {
-				uri = getIntent().getData();
-				Log.d("TAG", uri.toString());
-				if (uri != null) {
-					Thread newTwitterRequest = new Thread(new Runnable() {
 
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							String oAuthVerifier = uri
-									.getQueryParameter("oauth_verifier");
-							String oAuthToken = uri
-									.getQueryParameter("oauth_token");
-							ConfigurationBuilder builder = new ConfigurationBuilder();
-							builder.setOAuthConsumerKey("9C0j9rlHFXvnNVeoNnbA");
-							builder.setOAuthConsumerSecret("mHw3TWz63Eemq9Jk8SoIBLeYyGWGWmsgHs7KIkA");
-							Configuration configuration = builder.build();
-							TwitterFactory factory = new TwitterFactory(
-									configuration);
-							twitter = factory.getInstance();
-							try {
-								requestToken = twitter
-										.getOAuthRequestToken("x-oauthflow-twitter://privlyT4JCallback");
-								Log.d("requestToken inside Try",
-										requestToken.toString());
-								AccessToken accessToken = twitter
-										.getOAuthAccessToken(requestToken,
-												oAuthVerifier);
-								Log.d("Get Token", accessToken.getToken());
-								Log.d("Token Secreat",
-										accessToken.getTokenSecret());
-								long userId = accessToken.getUserId();
-								User user = twitter.showUser(userId);
-								String username = user.getName();
-							} catch (TwitterException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+			Thread fetchTimeLineThread = new Thread(new Runnable() {
 
-							Log.d("requestToken", requestToken.toString());
-						}
-					});
-
-					newTwitterRequest.start();
-
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					newTwitterRequest();
 				}
-			} catch (Exception exception) {
-				exception.printStackTrace();
+			});
+			fetchTimeLineThread.start();
+
+		}
+	}
+
+	private void loginToTwitter() {
+		ConfigurationBuilder builder = new ConfigurationBuilder();
+		builder.setOAuthConsumerKey("ENTER_CONSUMER_KEY");
+		builder.setOAuthConsumerSecret("ENTER_CONSUMER_SECRET");
+		Configuration configuration = builder.build();
+		TwitterFactory factory = new TwitterFactory(configuration);
+		twitter = factory.getInstance();
+		try {
+			requestToken = twitter
+					.getOAuthRequestToken("x-oauthflow-twitter://privlyT4JCallback");
+			Log.d("RequestTokenCreated", requestToken.toString());
+		} catch (TwitterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String authUrl = requestToken.getAuthenticationURL();
+		this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl)));
+	}
+
+
+	private void newTwitterRequest() {
+		try {
+			uri = getIntent().getData();
+			Log.d("TAG", uri.toString());
+			if (uri != null) {
+				Thread newTwitterRequest = new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						String oAuthVerifier = uri
+								.getQueryParameter("oauth_verifier");
+						String oAuthToken = uri
+								.getQueryParameter("oauth_token");
+						ConfigurationBuilder builder = new ConfigurationBuilder();
+						builder.setOAuthConsumerKey("9C0j9rlHFXvnNVeoNnbA");
+						builder.setOAuthConsumerSecret("mHw3TWz63Eemq9Jk8SoIBLeYyGWGWmsgHs7KIkA");
+						Configuration configuration = builder.build();
+						TwitterFactory factory = new TwitterFactory(
+								configuration);
+						twitter = factory.getInstance();
+						try {
+							requestToken = twitter
+									.getOAuthRequestToken("x-oauthflow-twitter://privlyT4JCallback");
+							Log.d("requestToken inside Try",
+									requestToken.toString());
+							AccessToken accessToken = twitter
+									.getOAuthAccessToken(requestToken,
+											oAuthVerifier);
+							Log.d("Get Token", accessToken.getToken());
+							Log.d("Token Secret", accessToken.getTokenSecret());
+							long userId = accessToken.getUserId();
+							User user = twitter.showUser(userId);
+							String username = user.getName();
+						} catch (TwitterException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+						Log.d("requestToken", requestToken.toString());
+						try {
+							accessToken = twitter.getOAuthAccessToken(
+									requestToken, oAuthVerifier);
+							Log.d("Get Token", accessToken.getToken());
+							Log.d("Token Secreat", accessToken.getTokenSecret());
+							long userId = accessToken.getUserId();
+							User user = twitter.showUser(userId);
+							String username = user.getName();
+						} catch (TwitterException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				});
+
+				newTwitterRequest.start();
+
 			}
+		} catch (Exception exception) {
+			exception.printStackTrace();
 		}
 	}
 	@Override
@@ -136,44 +181,5 @@ public class MainActivity extends Activity {
 
 	}
 
-	// @Override
-	// public void onSaveInstanceState(Bundle savedInstanceState) {
-	// super.onSaveInstanceState(savedInstanceState);
-	// // Save UI state changes to the savedInstanceState.
-	// // This bundle will be passed to onCreate if the process is
-	// // killed and restarted.
-	// savedInstanceState.putString("requestToken", requestToken.toString());
-	// // etc.
-	// }
-	//
-	// @Override
-	// public void onRestoreInstanceState(Bundle savedInstanceState) {
-	// super.onRestoreInstanceState(savedInstanceState);
-	// // Restore UI state from the savedInstanceState.
-	// // This bundle has also been passed to onCreate.
-	// String requestTokenFromInstance = savedInstanceState
-	// .getString("requestToken");
-	// requestToken = new RequestToken(requestTokenFromInstance, null);
-	// Log.d("TAG", requestToken.toString());
-	// }
-
-	private void loginToTwitter() {
-		ConfigurationBuilder builder = new ConfigurationBuilder();
-		builder.setOAuthConsumerKey("9C0j9rlHFXvnNVeoNnbA");
-		builder.setOAuthConsumerSecret("mHw3TWz63Eemq9Jk8SoIBLeYyGWGWmsgHs7KIkA");
-		Configuration configuration = builder.build();
-		TwitterFactory factory = new TwitterFactory(configuration);
-		twitter = factory.getInstance();
-		try {
-			requestToken = twitter
-					.getOAuthRequestToken("x-oauthflow-twitter://privlyT4JCallback");
-			Log.d("RequestTokenCreated", requestToken.toString());
-		} catch (TwitterException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		String authUrl = requestToken.getAuthenticationURL();
-		this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl)));
-	}
 
 }
